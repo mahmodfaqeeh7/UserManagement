@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Import";
+}
+
+<h1>Import Excel File</h1>
+
+<div ng-app="userManagementApp" ng-controller="ImportController">
+    <form ng-submit="uploadFile()" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Choose Excel File</label>
+            <input type="file" id="file" class="form-control" ng-model="file" required />
+        </div>
+        <button type="submit" class="btn btn-primary" ng-disabled="isUploading">
+            <span ng-show="isUploading">Uploading...</span>
+            <span ng-show="!isUploading">Upload Excel</span>
+        </button>
+    </form>
+
+    <div ng-show="isUploading" class="progress mt-3">
+        <div class="progress-bar progress-bar-striped progress-bar-animated"
+             role="progressbar" style="width: {{importProgress}}%" aria-valuenow="{{importProgress}}"
+             aria-valuemin="0" aria-valuemax="100">
+            {{importProgress}}%
+        </div>
+    </div>
+
+    <div ng-show="importStatus" class="mt-3 alert"
+         ng-class="{'alert-success': importProgress === 100, 'alert-danger': importProgress < 100}">
+        {{importStatus}}
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Import AngularJS Library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <script>
+        var app = angular.module('userManagementApp', []);
+
+        app.controller('ImportController', function ($scope, $http) {
+            $scope.isUploading = false;
+            $scope.importProgress = 0;
+            $scope.importStatus = '';
+
+            $scope.uploadFile = function () {
+                var formData = new FormData();
+                var fileInput = document.getElementById('file').files[0]; 
+
+                if (fileInput) {
+                    formData.append('file', fileInput); 
+
+                    $scope.isUploading = true;
+                    $scope.importStatus = '';
+                    $scope.importProgress = 0;
+
+                    // Post the file to the server
+                    $http.post('/Users/Import', formData, {
+                        transformRequest: angular.identity,
+                        headers: { 'Content-Type': undefined },
+                        // Track upload progress
+                        uploadEventHandlers: {
+                            progress: function (e) {
+                                if (e.lengthComputable) {
+                                    $scope.importProgress = Math.round((e.loaded / e.total) * 100);
+                                    $scope.$apply(); // Update scope in real-time
+                                }
+                            }
+                        }
+                    }).then(function (response) {
+                        $scope.isUploading = false;
+                        $scope.importProgress = 100;
+                        $scope.importStatus = 'Import successful!';
+
+                        window.location.href = '/Users/Index';
+                    }, function (error) {
+                        $scope.isUploading = false;
+                        $scope.importProgress = 0;
+                        $scope.importStatus = 'Error during import. Please try again.';
+                    });
+                }
+            };
+        });
+    </script>
+}

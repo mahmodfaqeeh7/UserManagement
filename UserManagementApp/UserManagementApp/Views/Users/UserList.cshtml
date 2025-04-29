@@ -1,0 +1,16 @@
+﻿@model UserManagementApp.Models.User
+<div ng-app="userManagementApp" ng-controller="UserController">
+    <h2>User List</h2>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Mobile Number</th>
+        </tr>
+        <tr ng-repeat="user in users">
+            <td>{{ user.Name }}</td>
+            <td>{{ user.Email }}</td>
+            <td>{{ user.MobileNumber }}</td>
+        </tr>
+    </table>
+</div>
